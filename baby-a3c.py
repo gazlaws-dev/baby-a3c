@@ -1,10 +1,13 @@
 # Baby Advantage Actor-Critic | Sam Greydanus | October 2017 | MIT License
 
 from __future__ import print_function
-import torch, os, gym, time, glob, argparse, sys
+import torch, os, time, glob, argparse, sys
+#import gym
+#gaz
+from breakout_env import Breakout
 import numpy as np
 from scipy.signal import lfilter
-from scipy.misc import imresize # preserves single-pixel info _unlike_ img = img[::2,::2]
+from scipy.misc.pilutil import imresize # preserves single-pixel info _unlike_ img = img[::2,::2]
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.multiprocessing as mp
@@ -12,7 +15,7 @@ os.environ['OMP_NUM_THREADS'] = '1'
 
 def get_args():
     parser = argparse.ArgumentParser(description=None)
-    parser.add_argument('--env', default='Breakout-v4', type=str, help='gym environment')
+    parser.add_argument('--env', default='Breakout_env', type=str, help='gym environment')
     parser.add_argument('--processes', default=20, type=int, help='number of processes to train with')
     parser.add_argument('--render', default=False, type=bool, help='renders the atari environment')
     parser.add_argument('--test', default=False, type=bool, help='sets lr=0, chooses most likely actions')
@@ -26,7 +29,10 @@ def get_args():
     return parser.parse_args()
 
 discount = lambda x, gamma: lfilter([1],[1,-gamma],x[::-1])[::-1] # discounted rewards one liner
-prepro = lambda img: imresize(img[35:195].mean(2), (80,80)).astype(np.float32).reshape(1,80,80)/255.
+#prepro = lambda img: imresize(img[35:195].mean(2), (80,80)).astype(np.float32).reshape(1,80,80)/255.
+
+prepro = lambda img: imresize(img[::2,::2],(80,80)).astype(np.float32).reshape(1,80,80)/255.
+
 
 def printlog(args, s, end='\n', mode='a'):
     print(s, end=end) ; f=open(args.save_dir+'log.txt',mode) ; f.write(s+'\n') ; f.close()
@@ -96,8 +102,10 @@ def cost_func(args, values, logps, actions, rewards):
     return policy_loss + 0.5 * value_loss - 0.01 * entropy_loss
 
 def train(shared_model, shared_optimizer, rank, args, info):
-    env = gym.make(args.env) # make a local (unshared) environment
-    env.seed(args.seed + rank) ; torch.manual_seed(args.seed + rank) # seed everything
+    #env = gym.make(args.env) # make a local (unshared) environment
+    env = Breakout({})#{args}
+    #env.seed(args.seed + rank) 
+    torch.manual_seed(args.seed + rank) # seed everything
     model = NNPolicy(channels=1, memsize=args.hidden, num_actions=args.num_actions) # a local/unshared model
     state = torch.tensor(prepro(env.reset())) # get first state
 
@@ -169,7 +177,7 @@ if __name__ == "__main__":
     args.save_dir = '{}/'.format(args.env.lower()) # keep the directory structure simple
     if args.render:  args.processes = 1 ; args.test = True # render mode -> test mode w one process
     if args.test:  args.lr = 0 # don't train in render mode
-    args.num_actions = gym.make(args.env).action_space.n # get the action space of this game
+    args.num_actions = Breakout().actions # get the action space of this game
     os.makedirs(args.save_dir) if not os.path.exists(args.save_dir) else None # make dir to save models etc.
 
     torch.manual_seed(args.seed)
