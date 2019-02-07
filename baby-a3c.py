@@ -5,12 +5,17 @@ import torch, os, time, glob, argparse, sys
 #import gym
 #gaz
 from pong import Pong
+from cv2 import VideoWriter, VideoWriter_fourcc,imshow, waitKey, imwrite
+
 import numpy as np
 from scipy.signal import lfilter
 from scipy.misc.pilutil import imresize # preserves single-pixel info _unlike_ img = img[::2,::2]
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.multiprocessing as mp
+
+vid = VideoWriter('demo_pong.avi', VideoWriter_fourcc(*"XVID"), float(30), (160,210), False)
+
 os.environ['OMP_NUM_THREADS'] = '1'
 
 def get_args():
@@ -125,7 +130,12 @@ def train(shared_model, shared_optimizer, rank, args, info):
 
             action = torch.exp(logp).multinomial(num_samples=1).data[0]#logp.max(1)[1].data if args.test else
             state, reward, done, _ = env.step(action.numpy()[0])
-            if args.render: env.render()
+	
+            if args.render:
+                #env.render()
+                imshow('state',state)
+                waitKey(1)
+                vid.write(state)
 
             state = torch.tensor(prepro(state)) ; epr += reward
             reward = np.clip(reward, -1, 1) # reward

@@ -8,15 +8,17 @@ default_conf = {
   'max_step': 10000,
   'lifes': 5,
   'ball_pos': [100, 40],
-  'ball_speed': [4, 2],
+  'ball_speed': [5, 3],
   'ball_color': 143,
   'ball_size': [5, 2],
   'paddle_width': 15,
   'paddle_color': 143,
-  'paddle_speed': 3,
+  'paddle_1_speed': 2,
+  'paddle_2_speed': 2,
   'bricks_rows': 6,
   'bricks_color': [200, 180, 160, 140, 120, 100],
   'bricks_reward': [6, 5, 4, 3, 2, 1],
+  'reward': 1,
   'catch_reward': 0
 }
 
@@ -182,10 +184,10 @@ class Pong(object):
     self.ball = GameObject(self.conf['ball_pos'], self.conf['ball_size'], self.conf['ball_color'])
     self.ball_v = list(self.conf['ball_speed'])
     self.paddle_1 = GameObject([189, 70], [4, self.conf['paddle_width']], self.conf['paddle_color'], self.conf['catch_reward'])
-    self.paddle_1_v = [0, self.conf['paddle_speed']]
+    self.paddle_1_v = [0, self.conf['paddle_1_speed']]
     
-    self.paddle_2 = GameObject([39, 70], [4, self.conf['paddle_width']], self.conf['paddle_color'], self.conf['catch_reward'])
-    self.paddle_2_v = [0, self.conf['paddle_speed']]
+    self.paddle_2 = GameObject([79, 70], [4, self.conf['paddle_width']], self.conf['paddle_color'], self.conf['catch_reward'])
+    self.paddle_2_v = [0, self.conf['paddle_2_speed']]
     self.bricks = Bricks(self.conf['bricks_rows'], 18, [6, 8], self.conf['bricks_color'], self.conf['bricks_reward'])
     return self.render()
 
@@ -201,7 +203,7 @@ class Pong(object):
       self.terminal = self.started
       self.ball = GameObject(self.conf['ball_pos'], self.conf['ball_size'], self.conf['ball_color'])
       self.ball_v = self.conf['ball_speed']
-      self.reward += paddle_2.reward
+      self.reward += self.conf['reward']
     elif aabb(bb1, [FRAME_Y[1], 999, 0, 999]): # Bottom edge
       self.lifes -= 1
       self.terminal = self.started and self.lifes == 0
