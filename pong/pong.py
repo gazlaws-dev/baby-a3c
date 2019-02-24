@@ -186,7 +186,7 @@ class Pong(object):
     self.paddle_1 = GameObject([189, 70], [4, self.conf['paddle_width']], self.conf['paddle_color'], self.conf['catch_reward'])
     self.paddle_1_v = [0, self.conf['paddle_1_speed']]
     
-    self.paddle_2 = GameObject([79, 70], [4, self.conf['paddle_width']], self.conf['paddle_color'], self.conf['catch_reward'])
+    self.paddle_2 = GameObject([73, 70], [4, self.conf['paddle_width']], self.conf['paddle_color'], self.conf['catch_reward'])
     self.paddle_2_v = [0, self.conf['paddle_2_speed']]
     self.bricks = Bricks(self.conf['bricks_rows'], 18, [6, 8], self.conf['bricks_color'], self.conf['bricks_reward'])
     return self.render()
